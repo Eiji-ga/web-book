@@ -1,8 +1,127 @@
-{
-  "scripts": {
-    "start": "servor --reload"
-  },
-  "dependencies": {
-    "servor": "^4.0.2"
-  }
-}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport" />
+    <meta content="mobile_blank" name="shell-type" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; font-family: 'Hanken Grotesk', system-ui, sans-serif; background: #ffffff; color: #000000; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+      ::-webkit-scrollbar { display: none; }
+      /* Golden ratio typography scale: base 15px, each step x1.618 */
+      .gr-h1 { font-size: 39px; line-height: 48px; font-weight: 600; letter-spacing: -0.02em; }
+      .gr-h2 { font-size: 24px; line-height: 32px; font-weight: 500; }
+      .gr-body { font-size: 15px; line-height: 24px; font-weight: 400; }
+      .gr-label { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.02em; }
+      .gr-small { font-size: 10px; line-height: 14px; font-weight: 500; letter-spacing: 0.04em; }
+      /* Golden ratio spacing: base 10px, each step x1.618 */
+      .gr-gap-xs { gap: 6px; }
+      .gr-gap-sm { gap: 10px; }
+      .gr-gap-md { gap: 16px; }
+      .gr-gap-lg { gap: 26px; }
+      .gr-gap-xl { gap: 42px; }
+      .gr-mt-sm { margin-top: 10px; }
+      .gr-mt-md { margin-top: 16px; }
+      .gr-mt-lg { margin-top: 26px; }
+      .gr-mt-xl { margin-top: 42px; }
+      .gr-p-md { padding: 16px; }
+      .gr-p-lg { padding: 26px; }
+      /* Rule of thirds: content block sits at 1/3 from top */
+      .rot-top { padding-top: 33.33vh; }
+      .rot-bottom { padding-bottom: 33.33vh; }
+    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="antialiased pt-safe pb-safe min-h-screen">
+    <main class="flex flex-col relative w-full px-5 min-h-screen justify-center">
+      <div class="w-full max-w-sm mx-auto flex flex-col">
+        <h1 class="gr-h1 tracking-tight">Sign In</h1>
+        <p class="gr-body gr-mt-sm text-gray-500">Enter your email or library card number to access your account.</p>
+        <form class="flex flex-col gr-mt-lg" id="signin-form" novalidate>
+          <div class="flex flex-col">
+            <label class="gr-label mb-1" for="identifier">Email or Card Number</label>
+            <input autocomplete="username" class="gr-body focus:outline-none focus:ring-1 focus:ring-black transition-all" id="identifier" required="" style="border: 1px solid #000000; padding: 12px; border-radius: 4px; width: 100%;" type="text" />
+            <p class="gr-small text-gray-400 mt-1 hidden" id="identifier-error">Please enter a valid email or card number.</p>
+          </div>
+          <div class="flex flex-col gr-mt-md">
+            <div class="flex justify-between items-center mb-1">
+              <label class="gr-label" for="password">Password</label>
+              <a class="gr-label underline hover:opacity-80" href="#">Forgot password?</a>
+            </div>
+            <div class="relative">
+              <input autocomplete="current-password" class="gr-body focus:outline-none focus:ring-1 focus:ring-black transition-all w-full" id="password" required="" style="border: 1px solid #000000; padding: 12px 40px 12px 12px; border-radius: 4px;" type="password" />
+              <button class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-black" id="toggle-pwd" type="button">Show</button>
+            </div>
+            <p class="gr-small text-gray-400 mt-1 hidden" id="password-error">Password is required.</p>
+          </div>
+          <button class="w-full gr-mt-lg text-center cursor-pointer active:opacity-90 transition-opacity gr-body" id="signin-btn" style="border: 1px solid #000000; padding: 12px; border-radius: 4px; font-weight: 500; background: #000000; color: #ffffff;" type="submit">Sign In</button>
+          <div class="gr-mt-lg text-center">
+            <span class="gr-label text-gray-500">Need a library card? </span>
+            <a class="gr-label underline hover:opacity-80" href="register.html">Register here.</a>
+          </div>
+        </form>
+      </div>
+    </main>
+    <script>
+      (function() {
+        // Poka-yoke: show/hide password toggle
+        var pwd = document.getElementById('password');
+        var toggle = document.getElementById('toggle-pwd');
+        toggle.addEventListener('click', function() {
+          if (pwd.type === 'password') {
+            pwd.type = 'text';
+            toggle.textContent = 'Hide';
+          } else {
+            pwd.type = 'password';
+            toggle.textContent = 'Show';
+          }
+        });
+
+        // Poka-yoke: validate before submit, show inline errors
+        var form = document.getElementById('signin-form');
+        var idInput = document.getElementById('identifier');
+        var idError = document.getElementById('identifier-error');
+        var pwdError = document.getElementById('password-error');
+
+        function validateIdentifier(val) {
+          var trimmed = val.trim();
+          if (!trimmed) return false;
+          // accept email format or card number format (digits with optional dash)
+          var isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+          var isCard = /^[0-9]{4,}(-[0-9]+)?$/.test(trimmed);
+          return isEmail || isCard;
+        }
+
+        idInput.addEventListener('input', function() {
+          idError.classList.add('hidden');
+          idInput.style.borderColor = '#000000';
+        });
+        pwd.addEventListener('input', function() {
+          pwdError.classList.add('hidden');
+          pwd.style.borderColor = '#000000';
+        });
+
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var valid = true;
+
+          if (!validateIdentifier(idInput.value)) {
+            idError.classList.remove('hidden');
+            idInput.style.borderColor = '#ba1a1a';
+            valid = false;
+          }
+          if (!pwd.value.trim()) {
+            pwdError.classList.remove('hidden');
+            pwd.style.borderColor = '#ba1a1a';
+            valid = false;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
